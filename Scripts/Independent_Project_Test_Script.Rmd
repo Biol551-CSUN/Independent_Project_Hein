@@ -1,0 +1,140 @@
+---
+title: "Independent Project Test Script"
+author: "Mac"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load Libraries
+
+```{r}
+library(tidyverse)
+library(tidytuesdayR)
+library(ggraph)
+library(igraph)
+library(ggdendro)
+library(ggtext)
+```
+
+# Load Data
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2021, week = 50)
+
+spiders <- tuesdata$spiders
+
+View(spiders)
+```
+
+# Analyze Data
+
+```{r}
+taxon_data <- spiders %>%
+  filter(family == "Actinopodidae") %>%
+  select(family, genus, species) %>%
+  group_by(family) %>%
+  arrange(family) %>% 
+  mutate(
+    level1 = "center",
+    level2 = family,
+    level3 = genus,
+    level4 = species
+  ) %>%
+  # important to ungroup here
+  ungroup() %>%
+  select(level1:level4) 
+
+# transform it to an edge list
+
+taxon_edges_level1_2 <- taxon_data %>% 
+  select(level1, level2) %>% 
+  unique %>% 
+  rename(from=level1, to=level2)
+
+taxon_edges_level2_3 <- taxon_data %>% 
+  select(level2, level3) %>% 
+  unique %>% 
+  rename(from=level2, to=level3)
+
+taxon_edges_level3_4 <- taxon_data %>% 
+  select(level3, level4) %>% 
+  unique %>% 
+  rename(from=level3, to=level4)
+
+taxon_edge_list=rbind(taxon_edges_level1_2,
+                      taxon_edges_level2_3,
+                      taxon_edges_level3_4)
+
+# plot dendogram
+
+taxon_graph <- graph_from_data_frame(taxon_edge_list)
+
+View(taxon_graph)
+
+# add text & color(leaf)
+
+ggraph(taxon_graph, layout = "dendrogram", circular = FALSE, repel = TRUE) +
+  geom_edge_elbow(lineend = "round") +
+  geom_node_text(aes(label = name, filter=leaf, color = level4), hjust = 1, size = 5) +
+  geom_node_point() +
+  coord_flip() +
+  theme_void()
+```
+
+```{r}
+taxon_data <- spiders %>%
+  filter(family == "Actinopodidae") %>%
+  select(genus) %>%
+  group_by(genus) %>%
+  arrange(genus) %>% 
+  mutate(
+    level1 = "center",
+    level2 = genus
+  ) %>%
+  # important to ungroup here
+  ungroup() %>%
+  select(level1:level2) 
+
+# transform it to an edge list
+
+taxon_edges_level1_2 <- taxon_data %>% 
+  select(level1, level2) %>% 
+  unique %>% 
+  rename(from=level1, to=level2)
+
+taxon_edge_list=rbind(taxon_edges_level1_2)
+
+# plot dendogram
+
+taxon_graph <- graph_from_data_frame(taxon_edge_list)
+
+# add text & color(leaf)
+
+ggraph(taxon_graph, layout = "dendrogram", circular = FALSE, repel = TRUE) +
+  geom_edge_elbow() +
+  geom_node_text(aes(label = name, filter=leaf), hjust = 1, size = 3, repel = TRUE) +
+  geom_node_point() +
+  coord_flip() +
+  theme_void()
+```
+
+```{r}
+selected_family <- filter(spiders, family == "Actinopodidae")
+
+View(selected_family)
+```
+
+```{r}
+genus_counts <- selected_family %>%  
+  group_by(genus) %>%
+  summarize(count = n())
+
+View(genus_counts)
+
+nrow(genus_counts)
+```
+

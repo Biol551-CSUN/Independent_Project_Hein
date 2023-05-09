@@ -1,0 +1,11 @@
+variable,class,description
+speciesId,double,Species unique id
+species_lsid,character,Species lsid
+family  ,character,Family
+genus,character ,Genus
+species,character,Species
+subspecies  ,character,Subspecies
+author ,character,Author
+year ,double,Year
+parentheses ,double,Parentheses
+distribution,character,"Distribution/region, comma separated"

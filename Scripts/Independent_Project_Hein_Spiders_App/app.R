@@ -107,6 +107,28 @@ tuesdata <- tidytuesdayR::tt_load(2021, week = 50)
 
 spiders <- tuesdata$spiders
 
+View(spiders)
+
+# Process Data
+
+year_counts <- spiders %>%
+  group_by(year) %>%
+  summarize(count = n())
+
+View(year_counts)
+
+distribution_counts <- spiders %>%
+  group_by(distribution) %>%
+  summarize(count = n())
+
+View(distribution_counts)
+
+distribution_year_counts <- spiders %>%
+    group_by(year, distribution) %>%
+    summarize(count = n())
+
+View(distribution_year_counts)
+
 # Define UI for application that draws a histogram
 
 ui <- fluidPage(
@@ -126,7 +148,8 @@ ui <- fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-           plotOutput("distPlot")
+          plotOutput("yearPlot"),
+          plotOutput("distPlot")
         )
     )
 )
@@ -134,16 +157,20 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 
 server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white',
-             xlab = 'Waiting time to next eruption (in mins)',
-             main = 'Histogram of waiting times')
+  
+  output$yearPlot <- renderPlot({
+    geom_point(data = year_counts, aes(x = year, y = count, color = "deeppink"))
+  })
+  
+  output$distPlot <- renderPlot({
+    # generate bins based on input$bins from ui.R
+    x    <- faithful[, 2]
+    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    
+    # draw the histogram with the specified number of bins
+    hist(x, breaks = bins, col = 'darkgray', border = 'white',
+         xlab = 'Waiting time to next eruption (in mins)',
+         main = 'Histogram of waiting times')
     })
 }
 
